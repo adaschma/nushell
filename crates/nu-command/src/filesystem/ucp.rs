@@ -362,8 +362,8 @@ fn parse_and_set_attribute(
 ) -> Result<(), ShellError> {
     match value {
         Value::String { val, .. } => {
-            let attribute = match val.as_str() {
-                "mode" => &mut attribute.mode,
+            match val.as_str() {
+                "mode" => attribute.mode = ATTR_SET,
                 #[cfg(any(
                     target_os = "linux",
                     target_os = "freebsd",
@@ -372,11 +372,11 @@ fn parse_and_set_attribute(
                     target_os = "netbsd",
                     target_os = "openbsd"
                 ))]
-                "ownership" => &mut attribute.ownership,
-                "timestamps" => &mut attribute.timestamps,
-                "context" => &mut attribute.context,
-                "link" | "links" => &mut attribute.links,
-                "xattr" => &mut attribute.xattr,
+                "ownership" => attribute.ownership = ATTR_SET,
+                "timestamps" => attribute.timestamps = ATTR_SET,
+                "context" => attribute.context = ATTR_SET,
+                "link" | "links" => attribute.links = ATTR_SET,
+                "xattr" => attribute.xattr = ATTR_SET,
                 _ => {
                     return Err(ShellError::IncompatibleParametersSingle {
                         msg: format!("--preserve flag got an unexpected attribute \"{}\"", val),
@@ -384,7 +384,6 @@ fn parse_and_set_attribute(
                     });
                 }
             };
-            *attribute = ATTR_SET;
             Ok(())
         }
         _ => Err(ShellError::IncompatibleParametersSingle {
