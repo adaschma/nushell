@@ -100,6 +100,11 @@ impl Command for UCp {
                 result: None,
             },
             Example {
+                description: "Copy file keeping all attributes",
+                example: "cp --preserve [all] myfile newfile",
+                result: None,
+            },
+            Example {
                 description: "Copy file to a directory three levels above its current location",
                 example: "cp myfile ....",
                 result: None,
@@ -377,6 +382,40 @@ fn parse_and_set_attribute(
                 "context" => attribute.context = ATTR_SET,
                 "link" | "links" => attribute.links = ATTR_SET,
                 "xattr" => attribute.xattr = ATTR_SET,
+                #[cfg(any(
+                    target_os = "linux",
+                    target_os = "freebsd",
+                    target_os = "android",
+                    target_os = "macos",
+                    target_os = "netbsd",
+                    target_os = "openbsd"
+                ))]
+                "all" => {
+                    attribute.mode = ATTR_SET;
+                    // #[cfg()] can be moved here once attributes on
+                    // expressions leave experimental status see E0658
+                    attribute.ownership = ATTR_SET;
+                    attribute.timestamps = ATTR_SET;
+                    attribute.context = ATTR_SET;
+                    attribute.links = ATTR_SET;
+                    attribute.xattr = ATTR_SET;
+                }
+                #[cfg(not(any(
+                    target_os = "linux",
+                    target_os = "freebsd",
+                    target_os = "android",
+                    target_os = "macos",
+                    target_os = "netbsd",
+                    target_os = "openbsd"
+                )))]
+                "all" => {
+                    attribute.mode = ATTR_SET;
+                    //attribute.ownership = ATTR_SET;
+                    attribute.timestamps = ATTR_SET;
+                    attribute.context = ATTR_SET;
+                    attribute.links = ATTR_SET;
+                    attribute.xattr = ATTR_SET;
+                }
                 _ => {
                     return Err(ShellError::IncompatibleParametersSingle {
                         msg: format!("--preserve flag got an unexpected attribute \"{}\"", val),
