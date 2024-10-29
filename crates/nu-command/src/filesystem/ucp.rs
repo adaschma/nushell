@@ -382,35 +382,22 @@ fn parse_and_set_attribute(
                 "context" => attribute.context = ATTR_SET,
                 "link" | "links" => attribute.links = ATTR_SET,
                 "xattr" => attribute.xattr = ATTR_SET,
-                #[cfg(any(
-                    target_os = "linux",
-                    target_os = "freebsd",
-                    target_os = "android",
-                    target_os = "macos",
-                    target_os = "netbsd",
-                    target_os = "openbsd"
-                ))]
                 "all" => {
                     attribute.mode = ATTR_SET;
-                    // #[cfg()] can be moved here once attributes on
-                    // expressions leave experimental status see E0658
-                    attribute.ownership = ATTR_SET;
-                    attribute.timestamps = ATTR_SET;
-                    attribute.context = ATTR_SET;
-                    attribute.links = ATTR_SET;
-                    attribute.xattr = ATTR_SET;
-                }
-                #[cfg(not(any(
-                    target_os = "linux",
-                    target_os = "freebsd",
-                    target_os = "android",
-                    target_os = "macos",
-                    target_os = "netbsd",
-                    target_os = "openbsd"
-                )))]
-                "all" => {
-                    attribute.mode = ATTR_SET;
-                    //attribute.ownership = ATTR_SET;
+                    // work-around attributes on
+                    // expressions is experimental see E0658
+                    match true {
+                        #[cfg(any(
+                            target_os = "linux",
+                            target_os = "freebsd",
+                            target_os = "android",
+                            target_os = "macos",
+                            target_os = "netbsd",
+                            target_os = "openbsd"
+                        ))]
+                        true => attribute.ownership = ATTR_SET,
+                        _ => {}
+                    }
                     attribute.timestamps = ATTR_SET;
                     attribute.context = ATTR_SET;
                     attribute.links = ATTR_SET;
