@@ -3,8 +3,6 @@ use std::sync::Arc;
 use nu_cmd_base::input_handler::{operate, CmdArgument};
 use nu_engine::command_prelude::*;
 use nu_protocol::{into_code, Config};
-use nu_utils::get_system_locale;
-use num_format::ToFormattedString;
 
 struct Arguments {
     decimals_value: Option<i64>,
@@ -192,7 +190,7 @@ fn action(input: &Value, args: &Arguments, span: Span) -> Value {
     match input {
         Value::Int { val, .. } => {
             let decimal_value = digits.unwrap_or(0) as usize;
-            let res = format_int(*val, false, decimal_value);
+            let res = format_int(*val, decimal_value);
             Value::string(res, span)
         }
         Value::Float { val, .. } => {
@@ -261,22 +259,14 @@ fn action(input: &Value, args: &Arguments, span: Span) -> Value {
     }
 }
 
-fn format_int(int: i64, group_digits: bool, decimals: usize) -> String {
-    let locale = get_system_locale();
-
-    let str = if group_digits {
-        int.to_formatted_string(&locale)
-    } else {
-        int.to_string()
-    };
+fn format_int(int: i64, decimals: usize) -> String {
+    let str = int.to_string();
 
     if decimals > 0 {
-        let decimal_point = locale.decimal();
-
         format!(
             "{}{decimal_point}{dummy:0<decimals$}",
             str,
-            decimal_point = decimal_point,
+            decimal_point = ".",
             dummy = "",
             decimals = decimals
         )
